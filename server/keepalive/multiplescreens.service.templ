@@ -1,0 +1,15 @@
+[Unit]
+Description=multiple-screens Daemon Script
+
+[Service]
+WorkingDirectory=%server_path%
+ExecStart=/usr/bin/node %server_path%/app.js --enable-https --key-path=%key_path% --cert-path=%cert_path% %extra_arguments%
+Restart=always
+User=multiplescreens
+Group=multiplescreens
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=multiplescreens
+
+[Install]
+WantedBy=multi-user.target

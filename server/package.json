@@ -1,0 +1,29 @@
+{
+  "name": "multiplescreens",
+  "version": "0.0.0",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "cookie-parser": "^1.4.3",
+    "cors": "^2.8.4",
+    "devbricksx-js": "^0.5.13",
+    "express": "4.13.3",
+    "express-ws": "^4.0.0",
+    "find": "^0.2.9",
+    "minimist": "^1.2.0",
+    "multer": "1.1.0",
+    "request": "~2.81.0",
+    "request-promise": "^4.2.2"
+  },
+  "devDependencies": {
+    "should": "~7.1.0",
+    "mocha": "~2.3.3",
+    "supertest": "~1.1.0"
+  },
+  "description": "Backend source codes for project multiple-screens",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
