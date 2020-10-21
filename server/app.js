@@ -56,13 +56,17 @@ if (argv[ENABLE_HTTPS]) {
     };
 
     let server = https.createServer(options, app);
+    let ws = require('./modules/wssrv.js')(app, server);
+
     server.listen(port, function(){
-        logger.info(`Working on port ${port}, through HTTP protocol`);
+        logger.info(`Working on port ${port}, through HTTPS protocol`);
     });
 
 } else {
+    let ws = require('./modules/wssrv.js')(app);
+
     app.listen(port, function () {
-        logger.info(`Working on port ${port}, through HTTPS protocol`);
+        logger.info(`Working on port ${port}, through HTTP protocol`);
     });
 }
 
