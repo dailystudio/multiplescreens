@@ -1,5 +1,6 @@
 package com.dailystudio.multiplescreens
 
+import android.graphics.Rect
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.dailystudio.devbricksx.development.Logger
@@ -65,8 +66,7 @@ class MainActivity : AppCompatActivity() {
                         updateScreenGrids(
                             command.gridWidthInDp,
                             command.gridHeightInDp,
-                            command.xOffsetInDp,
-                            command.yOffsetInDp
+                            command.drawingBoundInDp
                         )
                     }
                 }
@@ -76,11 +76,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateScreenGrids(gridWidthInDp: Int,
                                   gridHeightInDp: Int,
-                                  xOffsetInDp: Int,
-                                  yOffsetInDp: Int) {
+                                  drawingBoundInDp: Rect?
+    ) {
         val gridScreen: GridScreen = findViewById(R.id.grid_screen) ?: return
 
-        gridScreen.updateDimension(gridWidthInDp, gridHeightInDp, xOffsetInDp, yOffsetInDp)
+        gridScreen.updateDimension(
+            gridWidthInDp, gridHeightInDp,
+            drawingBoundInDp)
     }
 
     private fun reportScreenInfo(endpoint: WSEndpoint?, debugFactor:Float = 1.0f) {
