@@ -1,6 +1,12 @@
 const logger        = require('devbricksx-js').logger;
 
-clients = {};
+EXPOSE_PROPERTIES = [
+    'uuid', 'sid', 'widthInDp', 'heightInDp', 'seq',
+    'gridWidthInDp', 'gridHeightInDp',
+    'xOffsetInDp', 'yOffsetInDp',
+];
+
+let clients = new Map();
 
 module.exports = {
 
@@ -9,7 +15,7 @@ module.exports = {
             return;
         }
 
-        clients[uuid] = ws;
+        clients.set(uuid, ws);
         logger.debug(`new client [${uuid}] is registered.`);
     },
 
@@ -20,32 +26,53 @@ module.exports = {
             return;
         }
 
-        delete clients[uuid];
+        clients.delete(uuid);
         logger.debug(`client [${uuid}] is unregistered.`);
+    },
+
+    get: function (uuid) {
+        let client = clients.get(uuid);
+        if (!client) {
+            return undefined;
+        }
+
+        return dumpClient(client);
+    },
+
+    getWs: function (uuid) {
+        return clients.get(uuid);
     },
 
     list: function (sid) {
         logger.debug(`find clients with sid: ${sid}`);
-        return new Promise(function (resolve) {
-            let filtered = [];
+        let filtered = [];
 
-            let client;
-            Object.keys(clients).forEach(function (uuid) {
-                logger.debug(`uuid: ${uuid}`);
-                client = clients[uuid];
+        for (let [uuid, client] of clients) {
+            logger.debug(`uuid: ${uuid}`);
 
-                logger.debug(`client.sid: ${client.sid}`);
+            logger.debug(`client.sid: ${client.sid}`);
 
-                if (sid == null || sid === client.sid) {
-                    filtered.push({
-                        "uuid": client.uuid,
-                        "sid": client.sid
-                    });
-                }
-            });
+            if (sid == null || sid === client.sid) {
+                filtered.push(dumpClient(client));
+            }
+        }
 
-            resolve(filtered);
-        })
+        return filtered;
     }
 
 };
+
+
+function copy(obj, include=[]) {
+    return Object.keys(obj).reduce((target, k) => {
+        if (include.indexOf(k) > -1) {
+            target[k] = obj[k];
+        }
+
+        return target;
+    }, {});
+}
+
+function dumpClient(client) {
+    return copy(client, EXPOSE_PROPERTIES)
+}
