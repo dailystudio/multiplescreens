@@ -102,16 +102,25 @@ function splitCanvas(sid) {
     logger.debug(`gridInXAxis: ${gridInXAxis} , gridInYAxis: ${gridInYAxis}`);
     logger.debug(`grid: ${gridWidth} x ${gridHeight}`);
 
+    let canvasOffsetXInDp = 0;
     for (let c of clients) {
         let ws = wsmgr.getWs(c.uuid);
 
         if (ws) {
+            ws.canvasOffsetXInDp = canvasOffsetXInDp;
+            ws.canvasOffsetYInDp = 0;
             ws.gridWidthInDp = gridWidth;
             ws.gridHeightInDp = gridHeight;
-            ws.xOffsetInDp = 0;
-            ws.yOffsetInDp = Math.round((c.heightInDp - minHeightInDp) / 2);
+            ws.drawingBoundInDp = {
+                left: canvasOffsetXInDp,
+                top: 0,
+                right: canvasOffsetXInDp + c.widthInDp,
+                bottom: minHeightInDp
+            };
 
             updateScreenInfo(ws);
+
+            canvasOffsetXInDp += c.widthInDp;
         }
     }
 }

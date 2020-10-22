@@ -4,6 +4,7 @@ EXPOSE_PROPERTIES = [
     'uuid', 'sid', 'widthInDp', 'heightInDp', 'seq',
     'gridWidthInDp', 'gridHeightInDp',
     'xOffsetInDp', 'yOffsetInDp',
+    'canvasOffsetXInDp', 'canvasOffsetYInDp', 'drawingBoundInDp'
 ];
 
 let clients = new Map();
