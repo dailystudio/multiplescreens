@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name_release">multiplescreens</string>
+    <string name="app_name_debug">multiplescreens (Debug)</string>
+</resources>
