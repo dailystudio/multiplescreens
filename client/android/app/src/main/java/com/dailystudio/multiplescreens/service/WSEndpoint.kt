@@ -1,17 +1,32 @@
 package com.dailystudio.multiplescreens.service
 
 import com.dailystudio.devbricksx.development.Logger
+import com.google.gson.Gson
 import okhttp3.*
 import java.util.concurrent.TimeUnit
 
-class WSServe(val sid: String, val uuid: String) {
+interface WSEndpointListener {
+
+    fun onConnected(endpoint: WSEndpoint)
+    fun onDisconnect(endpoint: WSEndpoint, code: Int)
+    fun onCommand(endpoint: WSEndpoint, command: Command)
+
+}
+
+class WSEndpoint(private val sid: String,
+                 private val uuid: String,
+                 private val listener: WSEndpointListener? = null) {
 
     companion object {
-        private const val WS_URL = "ws://192.168.28.253:1809/screen"
+//        private const val WS_URL = "ws://192.168.28.253:1809/screen"
+        private const val WS_URL = "ws://192.168.2.237:1809/screen"
+        //        private const val WS_URL = "wss://multiplescreens.orangelabschina.cn:1809/screen"
         private const val CLOSE_REASON = "normal_close"
 
-        private const val CODE_CLOSE_NORMAL = 4000
-        private const val CODE_CLOSE_BY_SERVER = 4001
+        const val CODE_CLOSE_NORMAL = 4000
+        const val CODE_CLOSE_FAILED = 4001
+
+        private val GSON = Gson()
     }
 
     private var wsSocket: WebSocket? = null
@@ -33,20 +48,23 @@ class WSServe(val sid: String, val uuid: String) {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 Logger.debug("ws connected: resp = $response")
                 super.onOpen(webSocket, response)
+
+                listener?.onConnected(this@WSEndpoint)
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                Logger.error("ws failed: t = $t, resp = $response")
+                Logger.error("ws failed: t = ${t.printStackTrace()}, resp = $response")
 
                 super.onFailure(webSocket, t, response)
 
                 wsSocket = null
+
+                listener?.onDisconnect(this@WSEndpoint, CODE_CLOSE_FAILED)
             }
 
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
                 Logger.debug("ws is closing: code = $code, reason = $reason")
                 super.onClosing(webSocket, code, reason)
-                wsSocket?.close(CODE_CLOSE_BY_SERVER, reason)
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
@@ -55,11 +73,21 @@ class WSServe(val sid: String, val uuid: String) {
                 super.onClosed(webSocket, code, reason)
 
                 wsSocket = null
+
+                listener?.onDisconnect(this@WSEndpoint, code)
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
                 super.onMessage(webSocket, text)
                 Logger.debug("ws text: %s", text)
+
+                val cmdObject = GSON.fromJson(text, Command::class.java)
+                when (cmdObject.cmdCode) {
+                    CmdCode.UPDATE_SCREEN_INFO -> {
+                        listener?.onCommand(this@WSEndpoint,
+                            GSON.fromJson(text, CmdUpdateScreenInfo::class.java))
+                    }
+                }
             }
 
         })
@@ -67,6 +95,12 @@ class WSServe(val sid: String, val uuid: String) {
 
     fun disconnect() {
         wsSocket?.close(CODE_CLOSE_NORMAL, CLOSE_REASON)
+    }
+
+    fun reportScreenInfo(widthInDp: Int, heightInDp: Int) {
+        val cmd = CmdReportScreenInfo(uuid, widthInDp , heightInDp);
+
+        wsSocket?.send(GSON.toJson(cmd))
     }
 
     private fun buildUrl(baseUrl: String,
@@ -80,7 +114,6 @@ class WSServe(val sid: String, val uuid: String) {
             append("&uuid=")
             append(uuid)
         }
-
     }
 
 }
