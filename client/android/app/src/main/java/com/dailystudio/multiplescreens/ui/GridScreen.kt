@@ -2,14 +2,12 @@ package com.dailystudio.multiplescreens.ui
 
 import android.annotation.TargetApi
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
+import android.graphics.*
 import android.os.Build
 import android.util.AttributeSet
 import com.dailystudio.devbricksx.development.Logger
 import com.dailystudio.devbricksx.ui.AbsSurfaceView
+import java.lang.NumberFormatException
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -19,6 +17,8 @@ class GridScreen: AbsSurfaceView {
     var gridWidthInDp: Int = 1
     var gridHeightInDp: Int = 1
     var drawingBoundInDp: Rect = Rect()
+
+    val occupiedGrids: MutableSet<String> = mutableSetOf()
 
     @JvmOverloads
     constructor(
@@ -95,6 +95,18 @@ class GridScreen: AbsSurfaceView {
                 endGridCol * gwInPx - canvasOffsetYInPx.toFloat()
             canvas.drawLine(lineStartX, lineY, lineEndX, lineY, paint)
         }
+
+        paint.apply {
+            color = Color.BLUE
+        }
+        for (grid in occupiedGrids) {
+            val point = dumpGrid(grid)
+
+            val lineX = point.x * gwInPx - canvasOffsetXInPx.toFloat()
+            val lineY = point.y * ghInPx - canvasOffsetYInPx.toFloat() + drawingAreaY
+
+            canvas.drawRect(lineX, lineY, lineX + gwInPx, lineY + ghInPx, paint)
+        }
     }
 
     fun updateDimension(gridWidthInDp: Int, gridHeightInDp: Int,
@@ -108,6 +120,26 @@ class GridScreen: AbsSurfaceView {
 
     fun dpToPx(dp: Int): Int {
         return (dp * resources.displayMetrics.density).roundToInt()
+    }
+
+    fun updateGrids(grids: Array<Array<Int>>) {
+        occupiedGrids.clear()
+
+        for (point in grids) {
+            occupiedGrids.add("${point[0]}_${point[1]}")
+        }
+    }
+
+    fun dumpGrid(gridStr: String): Point {
+        val parts = gridStr.split("_");
+
+        return try {
+            Point(parts[0].toInt(), parts[1].toInt())
+        } catch (e: NumberFormatException) {
+            Logger.error("failed to convert string [$gridStr] to point: $e")
+
+            Point(0, 0)
+        }
     }
 
 }

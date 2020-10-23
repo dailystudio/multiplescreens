@@ -5,10 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.dailystudio.devbricksx.development.Logger
-import com.dailystudio.multiplescreens.service.CmdUpdateScreenInfo
-import com.dailystudio.multiplescreens.service.Command
-import com.dailystudio.multiplescreens.service.WSEndpoint
-import com.dailystudio.multiplescreens.service.WSEndpointListener
+import com.dailystudio.multiplescreens.service.*
 import com.dailystudio.multiplescreens.ui.GridScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -19,17 +16,15 @@ import kotlin.math.roundToInt
 class MainActivity : AppCompatActivity() {
 
     private lateinit var wsServer1: WSEndpoint
-    private lateinit var wsServer2: WSEndpoint
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
 
-        val gridScreen: GridScreen = findViewById(R.id.grid_screen)
+        val gridScreen: GridScreen? = findViewById(R.id.grid_screen)
         gridScreen?.addOnLayoutChangeListener { view, i, i2, i3, i4, i5, i6, i7, i8 ->
             reportScreenInfo(wsServer1)
-//            reportScreenInfo(wsServer2, 0.8f)
         }
     }
 
@@ -37,25 +32,18 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         wsServer1 = WSEndpoint("screen01", UUID.randomUUID().toString(), wsEndpointListener)
         wsServer1.connect()
-//        wsServer2 = WSEndpoint("screen01", "d2", wsEndpointListener)
-//        wsServer2.connect()
     }
 
     override fun onStop() {
         super.onStop()
 
         wsServer1.disconnect()
-//        wsServer2.disconnect()
     }
 
     private val wsEndpointListener = object: WSEndpointListener {
 
         override fun onConnected(endpoint: WSEndpoint) {
-            if (endpoint == wsServer1) {
-                reportScreenInfo(endpoint)
-//            } else {
-//                reportScreenInfo(endpoint, 0.8f)
-            }
+            reportScreenInfo(endpoint)
         }
 
         override fun onDisconnect(endpoint: WSEndpoint, code: Int) {
@@ -65,14 +53,18 @@ class MainActivity : AppCompatActivity() {
             Logger.debug("new command: $command")
             when (command) {
                 is CmdUpdateScreenInfo -> {
-                    if (endpoint == wsServer1) {
-                        lifecycleScope.launch(Dispatchers.Main) {
-                            updateScreenGrids(
-                                command.gridWidthInDp,
-                                command.gridHeightInDp,
-                                command.drawingBoundInDp
-                            )
-                        }
+                    lifecycleScope.launch(Dispatchers.Main) {
+                        updateScreenGrids(
+                            command.gridWidthInDp,
+                            command.gridHeightInDp,
+                            command.drawingBoundInDp
+                        )
+                    }
+                }
+
+                is CmdGridsMap -> {
+                    lifecycleScope.launch(Dispatchers.Main) {
+                        updateGridsMap(command.map)
                     }
                 }
             }
@@ -88,6 +80,12 @@ class MainActivity : AppCompatActivity() {
         gridScreen.updateDimension(
             gridWidthInDp, gridHeightInDp,
             drawingBoundInDp)
+    }
+
+    private fun updateGridsMap(map: Array<Array<Int>>) {
+        val gridScreen: GridScreen = findViewById(R.id.grid_screen) ?: return
+
+        gridScreen.updateGrids(map)
     }
 
     private fun reportScreenInfo(endpoint: WSEndpoint?, debugFactor:Float = 1.0f) {

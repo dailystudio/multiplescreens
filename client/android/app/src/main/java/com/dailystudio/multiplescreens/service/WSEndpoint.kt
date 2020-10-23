@@ -87,6 +87,11 @@ class WSEndpoint(private val sid: String,
                         listener?.onCommand(this@WSEndpoint,
                             GSON.fromJson(text, CmdUpdateScreenInfo::class.java))
                     }
+
+                    CmdCode.SYNC_GRIDS_MAP -> {
+                        listener?.onCommand(this@WSEndpoint,
+                            GSON.fromJson(text, CmdGridsMap::class.java))
+                    }
                 }
             }
 

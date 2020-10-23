@@ -4,7 +4,8 @@ import android.graphics.Rect
 
 enum class CmdCode {
     REPORT_SCREEN_INFO,
-    UPDATE_SCREEN_INFO
+    UPDATE_SCREEN_INFO,
+    SYNC_GRIDS_MAP,
 }
 
 open class Command(val uuid: String,
@@ -31,6 +32,19 @@ open class CmdUpdateScreenInfo(uuid: String,
             append(": seq = $seq, ")
             append("grid = [${gridWidthInDp}dp x ${gridHeightInDp}dp], ")
             append("drawingBoundInDp = $drawingBoundInDp")
+        }
+    }
+
+}
+
+open class CmdGridsMap(uuid: String,
+                       val map: Array<Array<Int>>
+): Command(uuid, CmdCode.SYNC_GRIDS_MAP) {
+
+    override fun toString(): String {
+        return buildString {
+            append(super.toString())
+            append(": map = $map")
         }
     }
 
