@@ -50,28 +50,21 @@ module.exports = function(app, httpsServer) {
                         splitCanvas(ws.sid);
                         break;
 
-                    case constants.CMD_CODE_START_DRAWING:
+                    case constants.CMD_CODE_START_DRAWING: {
                         let sid = msgObj.sid;
-                        logger.debug(`start drawing: sid = ${sid}`);
-                        sessions.delete(sid);
 
-                        let session = {
-                            sid: sid,
-                            drawingIndex: 0,
-                        };
-
-                        sessions.set(sid, session);
-
-                        session.handler = setInterval(function () {
-                            broadcastDrawing(sid,
-                                constants.GRIDS_MAP[session.drawingIndex++]);
-
-                            if (session.drawingIndex >= constants.GRIDS_MAP.length) {
-                                clearInterval(session.handler);
-                            }
-                        }, 200);
+                        startDrawing(sid);
 
                         break;
+                    }
+
+                    case constants.CMD_CODE_STOP_DRAWING: {
+                        let sid = msgObj.sid;
+
+                        pauseDrawing(sid);
+
+                        break;
+                    }
 
                     default:
                         logger.warn(`unsupported cmd: [${msgObj.cmd}]`);
@@ -85,8 +78,9 @@ module.exports = function(app, httpsServer) {
         ws.on('close', function(ws, req) {
             logger.info(`${this.uuid} disconnected.`);
 
-            wsmgr.unregister(this.uuid);
+            stopDrawing(this.sid);
 
+            wsmgr.unregister(this.uuid);
             splitCanvas(this.sid);
         });
 
@@ -99,7 +93,6 @@ function applySeq(sid) {
     logger.debug(`clients: ${JSON.stringify(clients)}`);
     return (clients.length);
 }
-
 
 function updateScreenInfo(ws) {
     let data = wsmgr.get(ws.uuid);
@@ -118,6 +111,56 @@ function syncGrisMap(ws) {
 
     logger.info(`grids map info: ${JSON.stringify(data)}`);
     ws.send(JSON.stringify(data));
+}
+
+function startDrawing(sid) {
+    logger.debug(`start drawing: sid = ${sid}`);
+
+    let session = sessions.get(sid);
+    if (!session) {
+        session = {
+            sid: sid,
+            drawingIndex: 0,
+        };
+
+        sessions.set(sid, session);
+    }
+
+    resumeDrawing(sid);
+}
+
+function resumeDrawing(sid) {
+    let session = sessions.get(sid);
+    if (!session) {
+        return;
+    }
+
+    session.handler = setInterval(function () {
+        broadcastDrawing(sid,
+            constants.GRIDS_MAP[session.drawingIndex++]);
+
+        if (session.drawingIndex >= constants.GRIDS_MAP.length) {
+            stopDrawing(sid);
+        }
+    }, constants.DRAWING_INTERVAL);
+}
+
+function pauseDrawing(sid) {
+    let session = sessions.get(sid);
+    if (!session) {
+        return;
+    }
+
+    if (session.handler) {
+        clearInterval(session.handler);
+    }
+}
+
+function stopDrawing(sid) {
+    logger.debug(`stop drawing: sid = ${sid}`);
+
+    pauseDrawing(sid);
+    sessions.delete(sid);
 }
 
 function broadcastDrawing(sid, point) {

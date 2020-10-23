@@ -7,6 +7,7 @@ module.exports = Object.freeze({
     CMD_CODE_UPDATE_SCREEN_INFO: "UPDATE_SCREEN_INFO",
     CMD_CODE_SYNC_GRIDS_MAP: "SYNC_GRIDS_MAP",
     CMD_CODE_START_DRAWING: "START_DRAWING",
+    CMD_CODE_STOP_DRAWING: "STOP_DRAWING",
     CMD_CODE_DRAW_POINT: "DRAW_POINT",
 
     GRID_COLS: 24,
@@ -93,6 +94,8 @@ module.exports = Object.freeze({
         [22, 8],
         [22, 9],
 
-    ]
+    ],
+
+    DRAWING_INTERVAL: 100,
 
 });
