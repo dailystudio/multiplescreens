@@ -8,11 +8,11 @@ import androidx.lifecycle.lifecycleScope
 import com.dailystudio.devbricksx.development.Logger
 import com.dailystudio.multiplescreens.service.*
 import com.dailystudio.multiplescreens.ui.GridScreen
+import com.dailystudio.multiplescreens.utils.MetricsUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.math.roundToInt
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,7 +21,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var startBtn: Button? = null
-    private lateinit var wsServer1: WSEndpoint
+    private var gridScreen: GridScreen? = null
+
+    private var wsServer: WSEndpoint? = null
 
 //    private var sessionId: String = "ms-${RANDOM.nextInt()}"
     private var sessionId: String = "ms-01"
@@ -31,9 +33,13 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        val gridScreen: GridScreen? = findViewById(R.id.grid_screen)
-        gridScreen?.addOnLayoutChangeListener { view, i, i2, i3, i4, i5, i6, i7, i8 ->
-            reportScreenInfo(wsServer1)
+        setupViews()
+    }
+
+    private fun setupViews() {
+        gridScreen = findViewById(R.id.grid_screen)
+        gridScreen?.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            connect()
         }
 
         startBtn = findViewById(R.id.btn_start)
@@ -42,19 +48,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-
-        wsServer1 = WSEndpoint(sessionId,
-                UUID.randomUUID().toString(),
-                wsEndpointListener)
-        wsServer1.connect()
-    }
-
     override fun onStop() {
         super.onStop()
 
-        wsServer1.disconnect()
+        disconnect()
+    }
+
+    private fun connect() {
+        wsServer = WSEndpoint(sessionId,
+                UUID.randomUUID().toString(),
+                wsEndpointListener)
+        wsServer?.connect()
+    }
+
+    private fun disconnect() {
+        wsServer?.disconnect()
     }
 
     private val wsEndpointListener = object: WSEndpointListener {
@@ -95,9 +103,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startDrawing() {
-        wsServer1?.startDrawing()
-
+        wsServer?.startDrawing()
     }
+
     private fun updateScreenGrids(gridWidthInDp: Int,
                                   gridHeightInDp: Int,
                                   drawingBoundInDp: Rect?
@@ -124,15 +132,11 @@ class MainActivity : AppCompatActivity() {
     private fun reportScreenInfo(endpoint: WSEndpoint?, debugFactor:Float = 1.0f) {
         val gridScreen: GridScreen = findViewById(R.id.grid_screen) ?: return
 
-        val widthInDp = pxToDp((gridScreen.width * debugFactor).roundToInt())
-        val heightInDp = pxToDp((gridScreen.height * debugFactor).roundToInt())
+        val widthInDp = MetricsUtils.pxToDp((gridScreen.width * debugFactor).roundToInt())
+        val heightInDp = MetricsUtils.pxToDp((gridScreen.height * debugFactor).roundToInt())
 
         Logger.debug("[${widthInDp}dp x ${heightInDp}dp]")
 
         endpoint?.reportScreenInfo(widthInDp, heightInDp)
-    }
-
-    fun pxToDp(px: Int): Int {
-        return (px / resources.displayMetrics.density).roundToInt()
     }
 }

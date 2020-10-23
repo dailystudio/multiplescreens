@@ -10,10 +10,11 @@ import com.dailystudio.devbricksx.development.Logger
 import com.dailystudio.devbricksx.ui.AbsSurfaceView
 import com.dailystudio.devbricksx.utils.ResourcesCompatUtils
 import com.dailystudio.multiplescreens.R
-import java.lang.NumberFormatException
+import com.dailystudio.multiplescreens.utils.MetricsUtils
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
+
 
 class GridScreen: AbsSurfaceView {
 
@@ -30,8 +31,15 @@ class GridScreen: AbsSurfaceView {
             style = Paint.Style.FILL
         }
 
-        const val DRAWING_DELAY = 200L
 
+        val CENTRAL_LINE_PAINT = Paint().apply {
+            color = GlobalContextWrapper.context?.getColor(R.color.light_gray) ?: Color.GRAY
+            style = Paint.Style.FILL
+            strokeWidth = MetricsUtils.dpToPx(2).toFloat()
+            pathEffect = DashPathEffect(
+                    floatArrayOf(MetricsUtils.dpToPx(15).toFloat(), MetricsUtils.dpToPx(5).toFloat()),
+                    0f)
+        }
     }
 
     var gridWidthInDp: Int = 1
@@ -44,17 +52,17 @@ class GridScreen: AbsSurfaceView {
 
     @JvmOverloads
     constructor(
-        context: Context,
-        attrs: AttributeSet? = null,
-        defStyleAttr: Int = 0
+            context: Context,
+            attrs: AttributeSet? = null,
+            defStyleAttr: Int = 0
     ) : super(context, attrs, defStyleAttr)
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     constructor(
-        context: Context,
-        attrs: AttributeSet?,
-        defStyleAttr: Int,
-        defStyleRes: Int
+            context: Context,
+            attrs: AttributeSet?,
+            defStyleAttr: Int,
+            defStyleRes: Int
     ) : super(context, attrs, defStyleAttr, defStyleRes)
 
     init {
@@ -68,13 +76,13 @@ class GridScreen: AbsSurfaceView {
         canvas.drawColor(ResourcesCompatUtils.getColor(context,
                 R.color.light_black))
 
-        val drawingAreaWidth = dpToPx(drawingBoundInDp.width())
-        val drawingAreaHeight = dpToPx(drawingBoundInDp.height())
+        val drawingAreaWidth = MetricsUtils.dpToPx(drawingBoundInDp.width())
+        val drawingAreaHeight = MetricsUtils.dpToPx(drawingBoundInDp.height())
         val drawingAreaX = 0
         val drawingAreaY = ((height - drawingAreaHeight) / 2.0f).roundToInt()
 
-        val gwInPx = dpToPx(gridWidthInDp)
-        val ghInPx = dpToPx(gridHeightInDp)
+        val gwInPx = MetricsUtils.dpToPx(gridWidthInDp)
+        val ghInPx = MetricsUtils.dpToPx(gridHeightInDp)
 
         if (DEBUG_FRAMES) {
             val drawingAreaRect = Rect(drawingAreaX, drawingAreaY,
@@ -83,21 +91,26 @@ class GridScreen: AbsSurfaceView {
             canvas.drawRect(drawingAreaRect, DRAWING_AREA_PAINT)
         }
 
+        canvas.drawLine(drawingAreaX.toFloat(),
+                drawingAreaY + drawingAreaHeight / 2.0f,
+                drawingAreaX.toFloat() + drawingAreaWidth,
+                drawingAreaY + drawingAreaHeight / 2.0f, CENTRAL_LINE_PAINT)
+
         val startGridCol = floor(drawingBoundInDp.left / gridWidthInDp.toFloat()).roundToInt()
         val startGridRow = floor(drawingBoundInDp.top / gridHeightInDp.toFloat()).roundToInt()
         val endGridCol = ceil(drawingBoundInDp.right / gridWidthInDp.toFloat()).roundToInt()
         val endGridRow = ceil(drawingBoundInDp.bottom / gridHeightInDp.toFloat()).roundToInt()
-        Logger.debug("start grid: col = $startGridCol, row = $startGridRow")
-        Logger.debug("end grid: col = $endGridCol, row = $endGridRow")
+//        Logger.debug("start grid: col = $startGridCol, row = $startGridRow")
+//        Logger.debug("end grid: col = $endGridCol, row = $endGridRow")
 
-        val canvasOffsetXInPx = dpToPx(drawingBoundInDp.left)
-        val canvasOffsetYInPx = dpToPx(drawingBoundInDp.top)
-        Logger.debug("canvasOffsetXInPx = $canvasOffsetXInPx, canvasOffsetYInPx = $canvasOffsetYInPx")
+        val canvasOffsetXInPx = MetricsUtils.dpToPx(drawingBoundInDp.left)
+        val canvasOffsetYInPx = MetricsUtils.dpToPx(drawingBoundInDp.top)
+//        Logger.debug("canvasOffsetXInPx = $canvasOffsetXInPx, canvasOffsetYInPx = $canvasOffsetYInPx")
 
         if (DEBUG_FRAMES) {
             for (col in startGridCol..endGridCol) {
                 val lineX = col * gwInPx - canvasOffsetXInPx.toFloat()
-                Logger.debug("lineX = $col * $gwInPx - ${canvasOffsetXInPx.toFloat()} = $lineX")
+//                Logger.debug("lineX = $col * $gwInPx - ${canvasOffsetXInPx.toFloat()} = $lineX")
                 val lineStartY =
                         startGridRow * ghInPx - canvasOffsetYInPx.toFloat() + drawingAreaY
                 val lineEndY = endGridRow * ghInPx - canvasOffsetYInPx.toFloat() + drawingAreaY
@@ -142,18 +155,12 @@ class GridScreen: AbsSurfaceView {
         invalidate()
     }
 
-    fun dpToPx(dp: Int): Int {
-        return (dp * resources.displayMetrics.density).roundToInt()
-    }
-
     fun updateGrids(grids: Array<Array<Int>>) {
         occupiedGrids.clear()
 
         for (point in grids) {
             occupiedGrids.add("${point[0]}_${point[1]}")
         }
-
-//        restartDrawing()
     }
 
     fun dumpGrid(gridStr: String): Point {
@@ -168,36 +175,9 @@ class GridScreen: AbsSurfaceView {
         }
     }
 
-    fun restartDrawing() {
-        drawnGrids.clear()
-
-        drawIndex = 0
-
-        postDelayed(drawRunnable, DRAWING_DELAY)
-    }
-
-    fun drawStep() {
-        val list = occupiedGrids.toList()
-        if (drawIndex < list.size) {
-            synchronized(drawnGrids) {
-                drawnGrids.add(list[drawIndex++])
-            }
-
-            invalidate()
-            postDelayed(drawRunnable, DRAWING_DELAY)
-        }
-
-    }
-
     fun drawPoint(point: Array<Int>) {
         drawnGrids.add("${point[0]}_${point[1]}")
 
         invalidate()
-    }
-
-    private var drawIndex = 0
-
-    private val drawRunnable = Runnable {
-        drawStep()
     }
 }
