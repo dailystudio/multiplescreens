@@ -3,8 +3,10 @@ const logger        = require('devbricksx-js').logger;
 const wsmgr         = require('./wsmgr.js');
 const constants     = require('./constants.js');
 
-let gridInXAxis = 40;
-let gridInYAxis = 20;
+let gridInXAxis = constants.GRID_COLS;
+let gridInYAxis = constants.GRID_ROWS;
+
+let sessions = new Map();
 
 module.exports = function(app, httpsServer) {
 
@@ -34,6 +36,7 @@ module.exports = function(app, httpsServer) {
         wsmgr.register(uuid, ws);
 
         updateScreenInfo(ws);
+        syncGrisMap(ws);
 
         ws.on('message', function(msg) {
             logger.debug(`receive message: [${msg}]`);
@@ -45,6 +48,29 @@ module.exports = function(app, httpsServer) {
                         ws.widthInDp = msgObj.widthInDp;
                         ws.heightInDp = msgObj.heightInDp;
                         splitCanvas(ws.sid);
+                        break;
+
+                    case constants.CMD_CODE_START_DRAWING:
+                        let sid = msgObj.sid;
+                        logger.debug(`start drawing: sid = ${sid}`);
+                        sessions.delete(sid);
+
+                        let session = {
+                            sid: sid,
+                            drawingIndex: 0,
+                        };
+
+                        sessions.set(sid, session);
+
+                        session.handler = setInterval(function () {
+                            broadcastDrawing(sid,
+                                constants.GRIDS_MAP[session.drawingIndex++]);
+
+                            if (session.drawingIndex >= constants.GRIDS_MAP.length) {
+                                clearInterval(session.handler);
+                            }
+                        }, 200);
+
                         break;
 
                     default:
@@ -60,6 +86,8 @@ module.exports = function(app, httpsServer) {
             logger.info(`${this.uuid} disconnected.`);
 
             wsmgr.unregister(this.uuid);
+
+            splitCanvas(this.uuid);
         });
 
     });
@@ -81,6 +109,35 @@ function updateScreenInfo(ws) {
     ws.send(JSON.stringify(data));
 }
 
+function syncGrisMap(ws) {
+    let data = {
+        cmdCode: constants.CMD_CODE_SYNC_GRIDS_MAP,
+        uuid: ws.uuid,
+        map: constants.GRIDS_MAP
+    };
+
+    logger.info(`grids map info: ${JSON.stringify(data)}`);
+    ws.send(JSON.stringify(data));
+}
+
+function broadcastDrawing(sid, point) {
+    logger.debug(`[${sid}] drawing point: ${JSON.stringify(point)}`)
+    let clients = wsmgr.list(sid);
+
+    for (let c of clients) {
+        let ws = wsmgr.getWs(c.uuid);
+
+        let data = {
+            cmdCode: constants.CMD_CODE_DRAW_POINT,
+            sid: sid,
+            uuid: ws.uuid,
+            point: point
+        };
+
+        logger.info(`drawing point: ${JSON.stringify(data)}`);
+        ws.send(JSON.stringify(data));
+    }
+}
 
 function splitCanvas(sid) {
     let clients = wsmgr.list(sid);
