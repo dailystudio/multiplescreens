@@ -18,9 +18,9 @@ class WSEndpoint(private val sid: String,
                  private val listener: WSEndpointListener? = null) {
 
     companion object {
-        private const val WS_URL = "ws://192.168.28.60:1809/screen"
-//        private const val WS_URL = "ws://192.168.2.237:1809/screen"
-        //        private const val WS_URL = "wss://multiplescreens.orangelabschina.cn:1809/screen"
+//        private const val WS_URL = "ws://192.168.28.60:1809/screen"
+        private const val WS_URL = "ws://192.168.2.237:1809/screen"
+//        private const val WS_URL = "wss://multiplescreens.orangelabschina.cn:1809/screen"
         private const val CLOSE_REASON = "normal_close"
 
         const val CODE_CLOSE_NORMAL = 4000
@@ -119,6 +119,12 @@ class WSEndpoint(private val sid: String,
 
     fun startDrawing() {
         val cmd = CmdStartDrawing(uuid, sid);
+
+        wsSocket?.send(GSON.toJson(cmd))
+    }
+
+    fun stopDrawing() {
+        val cmd = CmdStopDrawing(uuid, sid);
 
         wsSocket?.send(GSON.toJson(cmd))
     }

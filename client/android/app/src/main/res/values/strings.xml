@@ -3,6 +3,7 @@
     <string name="app_name_debug">multiplescreens (Debug)</string>
 
     <string name="label_start">Start</string>
+    <string name="label_stop">Stop</string>
     <string name="label_exit">Exit</string>
     <string name="label_host">Host</string>
     <string name="label_join">Join</string>

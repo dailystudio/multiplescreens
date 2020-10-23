@@ -7,9 +7,11 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.dailystudio.devbricksx.development.Logger
+import com.dailystudio.devbricksx.utils.ResourcesCompatUtils
 import com.dailystudio.multiplescreens.service.*
 import com.dailystudio.multiplescreens.ui.GridScreen
 import com.dailystudio.multiplescreens.utils.MetricsUtils
+import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.*
@@ -23,7 +25,7 @@ class MainActivity : AppCompatActivity() {
 
     private var hostBtn: Button? = null
     private var exitBtn: Button? = null
-    private var startBtn: Button? = null
+    private var startBtn: MaterialButton? = null
 
     private var groupStart: View? = null
     private var groupPlay: View? = null
@@ -35,6 +37,8 @@ class MainActivity : AppCompatActivity() {
     private var sessionId: String = "ms-${RANDOM.nextInt()}"
 //    private var sessionId: String = "ms-01"
     private val uuid: String = UUID.randomUUID().toString()
+
+    private var isDrawing = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,26 +60,36 @@ class MainActivity : AppCompatActivity() {
         hostBtn = findViewById(R.id.btn_host)
         hostBtn?.setOnClickListener {
             connect(sessionId)
+            gridScreen?.resetDrawing()
+
             groupStart?.visibility = View.GONE
             groupPlay?.visibility = View.VISIBLE
         }
 
         exitBtn = findViewById(R.id.btn_exit)
         exitBtn?.setOnClickListener {
+            stopDrawing()
             disconnect()
+            gridScreen?.resetDrawing()
+
             groupStart?.visibility = View.VISIBLE
             groupPlay?.visibility = View.GONE
         }
 
         startBtn = findViewById(R.id.btn_start)
         startBtn?.setOnClickListener {
-            startDrawing()
+            if (!isDrawing) {
+                startDrawing()
+            } else {
+                stopDrawing()
+            }
         }
     }
 
     override fun onStop() {
         super.onStop()
 
+        gridScreen?.resetDrawing()
         disconnect()
     }
 
@@ -129,6 +143,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun startDrawing() {
         wsServer?.startDrawing()
+        isDrawing = true
+        startBtn?.text = getString(R.string.label_stop)
+        startBtn?.icon = ResourcesCompatUtils.getDrawable(this,
+                R.drawable.ic_stop)
+    }
+
+    private fun stopDrawing() {
+        wsServer?.stopDrawing()
+
+        isDrawing = false
+        startBtn?.text = getString(R.string.label_start)
+        startBtn?.icon = ResourcesCompatUtils.getDrawable(this,
+                R.drawable.ic_play)
     }
 
     private fun updateScreenGrids(gridWidthInDp: Int,

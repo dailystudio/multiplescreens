@@ -7,6 +7,7 @@ enum class CmdCode {
     UPDATE_SCREEN_INFO,
     SYNC_GRIDS_MAP,
     START_DRAWING,
+    STOP_DRAWING,
     DRAW_POINT,
 }
 
@@ -24,6 +25,19 @@ open class Command(val uuid: String,
 class CmdStartDrawing(uuid: String,
                       val sid: String
 ): Command(uuid, CmdCode.START_DRAWING) {
+
+    override fun toString(): String {
+        return buildString {
+            append(super.toString())
+            append(": sid = $sid")
+        }
+    }
+
+}
+
+class CmdStopDrawing(uuid: String,
+                      val sid: String
+): Command(uuid, CmdCode.STOP_DRAWING) {
 
     override fun toString(): String {
         return buildString {
