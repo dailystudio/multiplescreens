@@ -6,6 +6,8 @@ enum class CmdCode {
     REPORT_SCREEN_INFO,
     UPDATE_SCREEN_INFO,
     SYNC_GRIDS_MAP,
+    START_DRAWING,
+    DRAW_POINT,
 }
 
 open class Command(val uuid: String,
@@ -19,11 +21,39 @@ open class Command(val uuid: String,
 
 }
 
-open class CmdUpdateScreenInfo(uuid: String,
-                               val seq: Int,
-                               val gridWidthInDp: Int,
-                               val gridHeightInDp: Int,
-                               val drawingBoundInDp: Rect?
+class CmdStartDrawing(uuid: String,
+                      val sid: String
+): Command(uuid, CmdCode.START_DRAWING) {
+
+    override fun toString(): String {
+        return buildString {
+            append(super.toString())
+            append(": sid = $sid")
+        }
+    }
+
+}
+
+class CmdDrawPoint(uuid: String,
+                   val sid: String,
+                   val point: Array<Int>
+): Command(uuid, CmdCode.DRAW_POINT) {
+
+    override fun toString(): String {
+        return buildString {
+            append(super.toString())
+            append(": sid = $sid, ")
+            append(": point = $point")
+        }
+    }
+
+}
+
+class CmdUpdateScreenInfo(uuid: String,
+                          val seq: Int,
+                          val gridWidthInDp: Int,
+                          val gridHeightInDp: Int,
+                          val drawingBoundInDp: Rect?
 ): Command(uuid, CmdCode.REPORT_SCREEN_INFO) {
 
     override fun toString(): String {
@@ -37,8 +67,8 @@ open class CmdUpdateScreenInfo(uuid: String,
 
 }
 
-open class CmdGridsMap(uuid: String,
-                       val map: Array<Array<Int>>
+class CmdGridsMap(uuid: String,
+                  val map: Array<Array<Int>>
 ): Command(uuid, CmdCode.SYNC_GRIDS_MAP) {
 
     override fun toString(): String {

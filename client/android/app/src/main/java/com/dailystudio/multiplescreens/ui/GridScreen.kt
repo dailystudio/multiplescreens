@@ -121,7 +121,8 @@ class GridScreen: AbsSurfaceView {
 
 //        for (grid in occupiedGrids) {
         synchronized(drawnGrids) {
-            for (grid in drawnGrids) {
+            val grids = drawnGrids.toList()
+            for (grid in grids) {
                 val point = dumpGrid(grid)
 
                 val lineX = point.x * gwInPx - canvasOffsetXInPx.toFloat()
@@ -152,7 +153,7 @@ class GridScreen: AbsSurfaceView {
             occupiedGrids.add("${point[0]}_${point[1]}")
         }
 
-        restartDrawing()
+//        restartDrawing()
     }
 
     fun dumpGrid(gridStr: String): Point {
@@ -186,6 +187,12 @@ class GridScreen: AbsSurfaceView {
             postDelayed(drawRunnable, DRAWING_DELAY)
         }
 
+    }
+
+    fun drawPoint(point: Array<Int>) {
+        drawnGrids.add("${point[0]}_${point[1]}")
+
+        invalidate()
     }
 
     private var drawIndex = 0

@@ -2,6 +2,7 @@ package com.dailystudio.multiplescreens
 
 import android.graphics.Rect
 import android.os.Bundle
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.dailystudio.devbricksx.development.Logger
@@ -15,7 +16,15 @@ import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
 
+    companion object {
+        val RANDOM = Random(System.currentTimeMillis())
+    }
+
+    private var startBtn: Button? = null
     private lateinit var wsServer1: WSEndpoint
+
+//    private var sessionId: String = "ms-${RANDOM.nextInt()}"
+    private var sessionId: String = "ms-01"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,11 +35,19 @@ class MainActivity : AppCompatActivity() {
         gridScreen?.addOnLayoutChangeListener { view, i, i2, i3, i4, i5, i6, i7, i8 ->
             reportScreenInfo(wsServer1)
         }
+
+        startBtn = findViewById(R.id.btn_start)
+        startBtn?.setOnClickListener {
+            startDrawing()
+        }
     }
 
     override fun onStart() {
         super.onStart()
-        wsServer1 = WSEndpoint("screen01", UUID.randomUUID().toString(), wsEndpointListener)
+
+        wsServer1 = WSEndpoint(sessionId,
+                UUID.randomUUID().toString(),
+                wsEndpointListener)
         wsServer1.connect()
     }
 
@@ -67,10 +84,20 @@ class MainActivity : AppCompatActivity() {
                         updateGridsMap(command.map)
                     }
                 }
+
+                is CmdDrawPoint -> {
+                    lifecycleScope.launch(Dispatchers.Main) {
+                        drawPoint(command.point)
+                    }
+                }
             }
         }
     }
 
+    private fun startDrawing() {
+        wsServer1?.startDrawing()
+
+    }
     private fun updateScreenGrids(gridWidthInDp: Int,
                                   gridHeightInDp: Int,
                                   drawingBoundInDp: Rect?
@@ -86,6 +113,12 @@ class MainActivity : AppCompatActivity() {
         val gridScreen: GridScreen = findViewById(R.id.grid_screen) ?: return
 
         gridScreen.updateGrids(map)
+    }
+
+    private fun drawPoint(point: Array<Int>) {
+        val gridScreen: GridScreen = findViewById(R.id.grid_screen) ?: return
+
+        gridScreen.drawPoint(point)
     }
 
     private fun reportScreenInfo(endpoint: WSEndpoint?, debugFactor:Float = 1.0f) {

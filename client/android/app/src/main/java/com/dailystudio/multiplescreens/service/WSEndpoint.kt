@@ -92,6 +92,15 @@ class WSEndpoint(private val sid: String,
                         listener?.onCommand(this@WSEndpoint,
                             GSON.fromJson(text, CmdGridsMap::class.java))
                     }
+
+                    CmdCode.DRAW_POINT -> {
+                        listener?.onCommand(this@WSEndpoint,
+                            GSON.fromJson(text, CmdDrawPoint::class.java))
+                    }
+
+                    else -> {
+                        Logger.warn("unsupported cmd: $cmdObject")
+                    }
                 }
             }
 
@@ -104,6 +113,12 @@ class WSEndpoint(private val sid: String,
 
     fun reportScreenInfo(widthInDp: Int, heightInDp: Int) {
         val cmd = CmdReportScreenInfo(uuid, widthInDp , heightInDp);
+
+        wsSocket?.send(GSON.toJson(cmd))
+    }
+
+    fun startDrawing() {
+        val cmd = CmdStartDrawing(uuid, sid);
 
         wsSocket?.send(GSON.toJson(cmd))
     }
