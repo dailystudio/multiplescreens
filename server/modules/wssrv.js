@@ -87,7 +87,7 @@ module.exports = function(app, httpsServer) {
 
             wsmgr.unregister(this.uuid);
 
-            splitCanvas(this.uuid);
+            splitCanvas(this.sid);
         });
 
     });
