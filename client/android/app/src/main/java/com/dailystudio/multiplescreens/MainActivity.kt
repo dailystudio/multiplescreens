@@ -2,6 +2,7 @@ package com.dailystudio.multiplescreens
 
 import android.graphics.Rect
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -20,13 +21,20 @@ class MainActivity : AppCompatActivity() {
         val RANDOM = Random(System.currentTimeMillis())
     }
 
+    private var hostBtn: Button? = null
+    private var exitBtn: Button? = null
     private var startBtn: Button? = null
+
+    private var groupStart: View? = null
+    private var groupPlay: View? = null
+
     private var gridScreen: GridScreen? = null
 
     private var wsServer: WSEndpoint? = null
 
-//    private var sessionId: String = "ms-${RANDOM.nextInt()}"
-    private var sessionId: String = "ms-01"
+    private var sessionId: String = "ms-${RANDOM.nextInt()}"
+//    private var sessionId: String = "ms-01"
+    private val uuid: String = UUID.randomUUID().toString()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,8 +46,25 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupViews() {
         gridScreen = findViewById(R.id.grid_screen)
-        gridScreen?.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-            connect()
+//        gridScreen?.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+//            connect()
+//        }
+
+        groupStart = findViewById(R.id.group_start)
+        groupPlay = findViewById(R.id.group_play)
+
+        hostBtn = findViewById(R.id.btn_host)
+        hostBtn?.setOnClickListener {
+            connect(sessionId)
+            groupStart?.visibility = View.GONE
+            groupPlay?.visibility = View.VISIBLE
+        }
+
+        exitBtn = findViewById(R.id.btn_exit)
+        exitBtn?.setOnClickListener {
+            disconnect()
+            groupStart?.visibility = View.VISIBLE
+            groupPlay?.visibility = View.GONE
         }
 
         startBtn = findViewById(R.id.btn_start)
@@ -54,9 +79,9 @@ class MainActivity : AppCompatActivity() {
         disconnect()
     }
 
-    private fun connect() {
-        wsServer = WSEndpoint(sessionId,
-                UUID.randomUUID().toString(),
+    private fun connect(sid: String) {
+        wsServer = WSEndpoint(sid,
+                uuid,
                 wsEndpointListener)
         wsServer?.connect()
     }
