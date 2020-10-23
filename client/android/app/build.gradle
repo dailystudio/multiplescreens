@@ -92,6 +92,10 @@ dependencies {
     implementation "com.dailystudio:devbricksx:${project.ext.devbricksxVersion}"
     implementation "com.dailystudio:devbricksx-java-annotations:${project.ext.devbricksxVersion}"
     implementation "com.dailystudio:devbricksx-kotlin-annotations:${project.ext.devbricksxVersion}"
+    implementation "com.google.zxing:core:${project.ext.zxingVersion}"
+    implementation ("com.journeyapps:zxing-android-embedded:${project.ext.zxingEmbeddedVersion}") {
+        transitive = false
+    }
 
     kapt "com.dailystudio:devbricksx-java-compiler:${project.ext.devbricksxVersion}"
     kapt "com.dailystudio:devbricksx-kotlin-compiler:${project.ext.devbricksxVersion}"

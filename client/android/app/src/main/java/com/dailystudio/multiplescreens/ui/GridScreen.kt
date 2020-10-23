@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.*
 import android.os.Build
 import android.util.AttributeSet
+import android.widget.FrameLayout
 import com.dailystudio.devbricksx.GlobalContextWrapper
 import com.dailystudio.devbricksx.development.Logger
 import com.dailystudio.devbricksx.ui.AbsSurfaceView
@@ -67,9 +68,12 @@ class GridScreen: AbsSurfaceView {
 
     init {
         setFramesPerSecond(30)
+        setZOrderOnTop(false)
     }
 
     override fun drawingCanvas(canvas: Canvas) {
+        val canvas = canvas ?: return
+
         gridHeightInDp = if (gridHeightInDp == 0) 1 else gridHeightInDp
         gridWidthInDp = if (gridWidthInDp == 0) 1 else gridWidthInDp
 

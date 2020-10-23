@@ -5,6 +5,9 @@
     <string name="label_start">Start</string>
     <string name="label_stop">Stop</string>
     <string name="label_exit">Exit</string>
+    <string name="label_share">Share</string>
     <string name="label_host">Host</string>
     <string name="label_join">Join</string>
+
+    <string name="prompt_join_session">Put QR code of the host in the frame</string>
 </resources>

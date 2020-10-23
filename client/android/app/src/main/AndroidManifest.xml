@@ -14,12 +14,20 @@
         android:theme="@style/AppTheme"
         android:networkSecurityConfig="@xml/network_security_config">
 
-        <activity android:name="com.dailystudio.multiplescreens.MainActivity">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".QRCodeActivity"/>
+
+        <activity android:name=".CaptureActivityPortrait"
+            android:screenOrientation="portrait"
+            android:stateNotNeeded="true"
+            android:theme="@style/zxing_CaptureTheme"
+            android:windowSoftInputMode="stateAlwaysHidden"/>
 
     </application>
 
