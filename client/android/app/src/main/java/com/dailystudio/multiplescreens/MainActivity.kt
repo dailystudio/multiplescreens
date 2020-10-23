@@ -3,12 +3,15 @@ package com.dailystudio.multiplescreens
 import android.graphics.Rect
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.dailystudio.devbricksx.development.Logger
 import com.dailystudio.multiplescreens.service.CmdUpdateScreenInfo
 import com.dailystudio.multiplescreens.service.Command
 import com.dailystudio.multiplescreens.service.WSEndpoint
 import com.dailystudio.multiplescreens.service.WSEndpointListener
 import com.dailystudio.multiplescreens.ui.GridScreen
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -63,11 +66,13 @@ class MainActivity : AppCompatActivity() {
             when (command) {
                 is CmdUpdateScreenInfo -> {
                     if (endpoint == wsServer1) {
-                        updateScreenGrids(
-                            command.gridWidthInDp,
-                            command.gridHeightInDp,
-                            command.drawingBoundInDp
-                        )
+                        lifecycleScope.launch(Dispatchers.Main) {
+                            updateScreenGrids(
+                                command.gridWidthInDp,
+                                command.gridHeightInDp,
+                                command.drawingBoundInDp
+                            )
+                        }
                     }
                 }
             }

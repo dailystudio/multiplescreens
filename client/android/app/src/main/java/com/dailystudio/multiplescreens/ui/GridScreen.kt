@@ -10,13 +10,14 @@ import android.os.Build
 import android.util.AttributeSet
 import com.dailystudio.devbricksx.development.Logger
 import com.dailystudio.devbricksx.ui.AbsSurfaceView
+import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
 
 class GridScreen: AbsSurfaceView {
 
-    var gridWidthInDp: Int = 0
-    var gridHeightInDp: Int = 0
+    var gridWidthInDp: Int = 1
+    var gridHeightInDp: Int = 1
     var drawingBoundInDp: Rect = Rect()
 
     @JvmOverloads
@@ -34,7 +35,14 @@ class GridScreen: AbsSurfaceView {
         defStyleRes: Int
     ) : super(context, attrs, defStyleAttr, defStyleRes)
 
+    init {
+        setFramesPerSecond(1)
+    }
+
     override fun drawingCanvas(canvas: Canvas) {
+        gridHeightInDp = if (gridHeightInDp == 0) 1 else gridHeightInDp
+        gridWidthInDp = if (gridWidthInDp == 0) 1 else gridWidthInDp
+
         canvas.drawColor(Color.BLACK)
 
         val drawingAreaWidth = dpToPx(drawingBoundInDp.width())
@@ -55,9 +63,38 @@ class GridScreen: AbsSurfaceView {
                 drawingAreaX + drawingAreaWidth, drawingAreaY + drawingAreaHeight),
             paint)
 
-//        val startGridCol = floor(canvasOffsetXInDp / gridWidthInDp.toFloat()).roundToInt()
-//        val startGridRow = floor(canvasOffsetYInDp / gridHeightInDp.toFloat()).roundToInt()
-//        Logger.debug("start grid: col = $startGridCol, row = $startGridRow")
+        val startGridCol = floor(drawingBoundInDp.left / gridWidthInDp.toFloat()).roundToInt()
+        val startGridRow = floor(drawingBoundInDp.top / gridHeightInDp.toFloat()).roundToInt()
+        val endGridCol = ceil(drawingBoundInDp.right / gridWidthInDp.toFloat()).roundToInt()
+        val endGridRow = ceil(drawingBoundInDp.bottom / gridHeightInDp.toFloat()).roundToInt()
+        Logger.debug("start grid: col = $startGridCol, row = $startGridRow")
+        Logger.debug("end grid: col = $endGridCol, row = $endGridRow")
+
+        paint.apply {
+            color = Color.GREEN
+        }
+
+        val canvasOffsetXInPx = dpToPx(drawingBoundInDp.left)
+        val canvasOffsetYInPx = dpToPx(drawingBoundInDp.top)
+        Logger.debug("canvasOffsetXInPx = $canvasOffsetXInPx, canvasOffsetYInPx = $canvasOffsetYInPx")
+
+        for (col in startGridCol .. endGridCol) {
+            val lineX = col * gwInPx - canvasOffsetXInPx.toFloat()
+            Logger.debug("lineX = $col * $gwInPx - ${canvasOffsetXInPx.toFloat()} = $lineX")
+            val lineStartY =
+                startGridRow * ghInPx - canvasOffsetYInPx.toFloat() + drawingAreaY
+            val lineEndY = endGridRow * ghInPx - canvasOffsetYInPx.toFloat() + drawingAreaY
+            canvas.drawLine(lineX, lineStartY, lineX, lineEndY, paint)
+        }
+
+        for (row in startGridRow .. endGridRow) {
+            val lineY = row * ghInPx - canvasOffsetYInPx.toFloat() + drawingAreaY
+            val lineStartX =
+                startGridCol * gwInPx - canvasOffsetXInPx.toFloat()
+            val lineEndX =
+                endGridCol * gwInPx - canvasOffsetYInPx.toFloat()
+            canvas.drawLine(lineStartX, lineY, lineEndX, lineY, paint)
+        }
     }
 
     fun updateDimension(gridWidthInDp: Int, gridHeightInDp: Int,
