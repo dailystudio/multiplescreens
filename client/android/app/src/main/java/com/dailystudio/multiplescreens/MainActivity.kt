@@ -1,6 +1,5 @@
 package com.dailystudio.multiplescreens
 
-import android.R.attr.bitmap
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -11,11 +10,11 @@ import android.widget.Button
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.dailystudio.devbricksx.app.activity.ActivityLauncher
 import com.dailystudio.devbricksx.development.Logger
 import com.dailystudio.devbricksx.utils.ResourcesCompatUtils
-import com.dailystudio.multiplescreens.service.*
-import com.dailystudio.multiplescreens.ui.GridScreen
+import com.dailystudio.multiplescreens.api.*
+import com.dailystudio.multiplescreens.fragment.AboutFragment
+import com.dailystudio.multiplescreens.ui.Screen
 import com.dailystudio.multiplescreens.utils.MetricsUtils
 import com.google.android.material.button.MaterialButton
 import com.google.zxing.BarcodeFormat
@@ -41,18 +40,18 @@ class MainActivity : AppCompatActivity() {
     private var startBtn: MaterialButton? = null
     private var shareBtn: MaterialButton? = null
     private var exitBtn: Button? = null
+    private var aboutBtn: Button? = null
 
     private var groupStart: View? = null
     private var groupPlay: View? = null
 
-    private var gridScreen: GridScreen? = null
+    private var screen: Screen? = null
     private var sessionQrCodeView: ImageView? = null
     private var qrCodeLayout: View? = null
 
     private var wsServer: WSEndpoint? = null
 
     private val mySessionId = "ms-${(1..1000).shuffled().first()}"
-//    private var sessionId: String = "ms-01"
     private val uuid: String = UUID.randomUUID().toString()
 
     private var isDrawing = false
@@ -66,10 +65,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupViews() {
-        gridScreen = findViewById(R.id.grid_screen)
-//        gridScreen?.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-//            connect()
-//        }
+        screen = findViewById(R.id.grid_screen)
 
         qrCodeLayout = findViewById(R.id.qr_code_layout)
         qrCodeLayout?.setOnClickListener {
@@ -116,7 +112,7 @@ class MainActivity : AppCompatActivity() {
         hostBtn = findViewById(R.id.btn_host)
         hostBtn?.setOnClickListener {
             connect(mySessionId)
-            gridScreen?.resetDrawing()
+            screen?.resetDrawing()
 
             groupStart?.visibility = View.GONE
             groupPlay?.visibility = View.VISIBLE
@@ -133,7 +129,7 @@ class MainActivity : AppCompatActivity() {
         exitBtn?.setOnClickListener {
             stopDrawing()
             disconnect()
-            gridScreen?.resetDrawing()
+            screen?.resetDrawing()
 
             groupStart?.visibility = View.VISIBLE
             groupPlay?.visibility = View.GONE
@@ -152,12 +148,19 @@ class MainActivity : AppCompatActivity() {
         shareBtn?.setOnClickListener {
             qrCodeLayout?.visibility = View.VISIBLE
         }
+
+        aboutBtn = findViewById(R.id.btn_about)
+        aboutBtn?.setOnClickListener {
+            val fragment = AboutFragment()
+
+            fragment.show(supportFragmentManager, "about")
+        }
     }
 
     override fun onStop() {
         super.onStop()
 
-        gridScreen?.resetDrawing()
+        screen?.resetDrawing()
         disconnect()
     }
 
@@ -169,7 +172,7 @@ class MainActivity : AppCompatActivity() {
             Logger.debug("session id from QR code: $urlFromQRCode")
             urlFromQRCode?.let {
                 connect(urlFromQRCode)
-                gridScreen?.resetDrawing()
+                screen?.resetDrawing()
 
                 groupStart?.visibility = View.GONE
                 groupPlay?.visibility = View.VISIBLE
@@ -263,30 +266,30 @@ class MainActivity : AppCompatActivity() {
                                   gridHeightInDp: Int,
                                   drawingBoundInDp: Rect?
     ) {
-        val gridScreen: GridScreen = findViewById(R.id.grid_screen) ?: return
+        val screen: Screen = findViewById(R.id.grid_screen) ?: return
 
-        gridScreen.updateDimension(
+        screen.updateDimension(
                 gridWidthInDp, gridHeightInDp,
                 drawingBoundInDp)
     }
 
     private fun updateGridsMap(map: Array<Array<Int>>) {
-        val gridScreen: GridScreen = findViewById(R.id.grid_screen) ?: return
+        val screen: Screen = findViewById(R.id.grid_screen) ?: return
 
-        gridScreen.updateGrids(map)
+        screen.updateGrids(map)
     }
 
     private fun drawPoint(point: Array<Int>) {
-        val gridScreen: GridScreen = findViewById(R.id.grid_screen) ?: return
+        val screen: Screen = findViewById(R.id.grid_screen) ?: return
 
-        gridScreen.drawPoint(point)
+        screen.drawPoint(point)
     }
 
     private fun reportScreenInfo(endpoint: WSEndpoint?, debugFactor: Float = 1.0f) {
-        val gridScreen: GridScreen = findViewById(R.id.grid_screen) ?: return
+        val screen: Screen = findViewById(R.id.grid_screen) ?: return
 
-        val widthInDp = MetricsUtils.pxToDp((gridScreen.width * debugFactor).roundToInt())
-        val heightInDp = MetricsUtils.pxToDp((gridScreen.height * debugFactor).roundToInt())
+        val widthInDp = MetricsUtils.pxToDp((screen.width * debugFactor).roundToInt())
+        val heightInDp = MetricsUtils.pxToDp((screen.height * debugFactor).roundToInt())
 
         Logger.debug("[${widthInDp}dp x ${heightInDp}dp]")
 

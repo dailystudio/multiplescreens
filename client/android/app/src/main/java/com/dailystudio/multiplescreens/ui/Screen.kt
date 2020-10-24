@@ -17,7 +17,7 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 
 
-class GridScreen: AbsSurfaceView {
+class Screen: AbsSurfaceView {
 
     companion object {
         const val DEBUG_FRAMES = false

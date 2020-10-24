@@ -21,8 +21,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".QRCodeActivity"/>
-
         <activity android:name=".CaptureActivityPortrait"
             android:screenOrientation="portrait"
             android:stateNotNeeded="true"

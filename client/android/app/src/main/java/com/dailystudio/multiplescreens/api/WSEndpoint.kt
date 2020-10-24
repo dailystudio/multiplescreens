@@ -1,4 +1,4 @@
-package com.dailystudio.multiplescreens.service
+package com.dailystudio.multiplescreens.api
 
 import com.dailystudio.devbricksx.development.Logger
 import com.google.gson.Gson
