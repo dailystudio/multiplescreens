@@ -3,4 +3,7 @@
     <color name="colorPrimary">#FF9900</color>
     <color name="colorPrimaryDark">@color/light_black</color>
     <color name="colorAccent">#FF9900</color>
+
+    <color name="mainColor">@color/light_white</color>
+
 </resources>

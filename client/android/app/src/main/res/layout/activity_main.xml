@@ -17,7 +17,7 @@
 
         <RelativeLayout
             android:id="@+id/bottom_layout"
-            android:background="@color/light_black"
+            android:background="@color/mainColor"
             android:layout_alignParentBottom="true"
             android:paddingStart="@dimen/default_padding"
             android:paddingEnd="@dimen/default_padding"

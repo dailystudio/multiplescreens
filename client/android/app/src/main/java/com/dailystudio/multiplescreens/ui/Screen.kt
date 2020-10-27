@@ -78,7 +78,7 @@ class Screen: AbsSurfaceView {
         gridWidthInDp = if (gridWidthInDp == 0) 1 else gridWidthInDp
 
         canvas.drawColor(ResourcesCompatUtils.getColor(context,
-                R.color.light_black))
+                R.color.mainColor))
 
         val drawingAreaWidth = MetricsUtils.dpToPx(drawingBoundInDp.width())
         val drawingAreaHeight = MetricsUtils.dpToPx(drawingBoundInDp.height())
