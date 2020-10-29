@@ -10,6 +10,7 @@ import com.dailystudio.devbricksx.GlobalContextWrapper
 import com.dailystudio.devbricksx.development.Logger
 import com.dailystudio.devbricksx.ui.AbsSurfaceView
 import com.dailystudio.devbricksx.utils.ResourcesCompatUtils
+import com.dailystudio.multiplescreens.MultipleScreensSettingsPrefs
 import com.dailystudio.multiplescreens.R
 import com.dailystudio.multiplescreens.utils.MetricsUtils
 import kotlin.math.ceil
@@ -20,8 +21,6 @@ import kotlin.math.roundToInt
 class Screen: AbsSurfaceView {
 
     companion object {
-        const val DEBUG_FRAMES = false
-
         val DRAWING_AREA_PAINT = Paint().apply {
             color = GlobalContextWrapper.context?.getColor(R.color.tomato_red) ?: Color.RED
             style = Paint.Style.FILL
@@ -73,9 +72,11 @@ class Screen: AbsSurfaceView {
 
     override fun drawingCanvas(canvas: Canvas) {
         val canvas = canvas ?: return
+        val debugFrames = MultipleScreensSettingsPrefs.instance.debugFrames
 
         gridHeightInDp = if (gridHeightInDp == 0) 1 else gridHeightInDp
         gridWidthInDp = if (gridWidthInDp == 0) 1 else gridWidthInDp
+        Logger.debug("gridHeightInDp = $gridHeightInDp, gridWidthInDp = $gridWidthInDp")
 
         canvas.drawColor(ResourcesCompatUtils.getColor(context,
                 R.color.mainColor))
@@ -88,7 +89,7 @@ class Screen: AbsSurfaceView {
         val gwInPx = MetricsUtils.dpToPx(gridWidthInDp)
         val ghInPx = MetricsUtils.dpToPx(gridHeightInDp)
 
-        if (DEBUG_FRAMES) {
+        if (debugFrames) {
             val drawingAreaRect = Rect(drawingAreaX, drawingAreaY,
                     drawingAreaX + drawingAreaWidth, drawingAreaY + drawingAreaHeight)
 
@@ -111,7 +112,7 @@ class Screen: AbsSurfaceView {
         val canvasOffsetYInPx = MetricsUtils.dpToPx(drawingBoundInDp.top)
 //        Logger.debug("canvasOffsetXInPx = $canvasOffsetXInPx, canvasOffsetYInPx = $canvasOffsetYInPx")
 
-        if (DEBUG_FRAMES) {
+        if (debugFrames) {
             for (col in startGridCol..endGridCol) {
                 val lineX = col * gwInPx - canvasOffsetXInPx.toFloat()
 //                Logger.debug("lineX = $col * $gwInPx - ${canvasOffsetXInPx.toFloat()} = $lineX")

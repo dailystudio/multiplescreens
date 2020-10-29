@@ -1,6 +1,7 @@
 package com.dailystudio.multiplescreens.api
 
 import com.dailystudio.devbricksx.development.Logger
+import com.dailystudio.multiplescreens.MultipleScreensSettingsPrefs
 import com.google.gson.Gson
 import okhttp3.*
 import java.util.concurrent.TimeUnit
@@ -20,7 +21,6 @@ class WSEndpoint(private val sid: String,
     companion object {
 //        private const val WS_URL = "ws://192.168.28.118:1809/screen"
 //        private const val WS_URL = "ws://192.168.2.237:1809/screen"
-        private const val WS_URL = "wss://multiplescreens.orangelabschina.cn:1809/screen"
         private const val CLOSE_REASON = "normal_close"
 
         const val CODE_CLOSE_NORMAL = 4000
@@ -37,7 +37,8 @@ class WSEndpoint(private val sid: String,
             .readTimeout(3, TimeUnit.SECONDS)
             .build();
 
-        val requestUrl = buildUrl(WS_URL, sid, uuid)
+        val requestUrl = buildUrl(
+            MultipleScreensSettingsPrefs.instance.wsUrl, sid, uuid)
         Logger.debug("ws url: $requestUrl")
         val request: Request = Request.Builder()
             .url(requestUrl)

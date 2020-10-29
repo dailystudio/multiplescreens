@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private var shareBtn: MaterialButton? = null
     private var exitBtn: Button? = null
     private var aboutBtn: Button? = null
+    private var settingsBtn: View? = null
 
     private var groupStart: View? = null
     private var groupPlay: View? = null
@@ -154,6 +155,11 @@ class MainActivity : AppCompatActivity() {
             val fragment = AboutFragment()
 
             fragment.show(supportFragmentManager, "about")
+        }
+
+        settingsBtn = findViewById(R.id.btn_settings)
+        settingsBtn?.setOnClickListener {
+            Logger.debug("clicked")
         }
     }
 
