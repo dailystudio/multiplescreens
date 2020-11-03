@@ -22,12 +22,12 @@ class Screen: AbsSurfaceView {
 
     companion object {
         val DRAWING_AREA_PAINT = Paint().apply {
-            color = GlobalContextWrapper.context?.getColor(R.color.tomato_red) ?: Color.RED
+            color = GlobalContextWrapper.context?.getColor(R.color.light_black) ?: Color.RED
             style = Paint.Style.FILL
         }
 
         val GRID_LINE_PAINT = Paint().apply {
-            color = GlobalContextWrapper.context?.getColor(R.color.royal_blue) ?: Color.BLUE
+            color = GlobalContextWrapper.context?.getColor(R.color.colorPrimary) ?: Color.BLUE
             style = Paint.Style.FILL
         }
 
@@ -42,11 +42,9 @@ class Screen: AbsSurfaceView {
         }
     }
 
-    var gridWidthInDp: Int = 1
-    var gridHeightInDp: Int = 1
+    var gridWidthInDp: Int = 0
+    var gridHeightInDp: Int = 0
     var drawingBoundInDp: Rect = Rect()
-
-    val occupiedGrids: MutableSet<String> = mutableSetOf()
 
     val drawnGrids: MutableSet<String> = mutableSetOf()
 
@@ -74,22 +72,30 @@ class Screen: AbsSurfaceView {
         val canvas = canvas ?: return
         val debugFrames = MultipleScreensSettingsPrefs.instance.debugFrames
 
-        gridHeightInDp = if (gridHeightInDp == 0) 1 else gridHeightInDp
-        gridWidthInDp = if (gridWidthInDp == 0) 1 else gridWidthInDp
-        Logger.debug("gridHeightInDp = $gridHeightInDp, gridWidthInDp = $gridWidthInDp")
+        val empty = synchronized(drawingBoundInDp) { drawingBoundInDp.isEmpty }
+        val widthInDp =  synchronized(gridWidthInDp) { if (gridWidthInDp == 0) width else gridWidthInDp }
+        val heightInDp = synchronized(gridHeightInDp) { if (gridHeightInDp == 0) height else gridHeightInDp }
+        val boundInDp = synchronized(drawingBoundInDp) {
+            if (drawingBoundInDp.isEmpty) {
+                Rect(0, 0, width, height)
+            } else {
+                drawingBoundInDp
+            }
+        }
+        val grids = synchronized(drawnGrids) { drawnGrids.toList() }
 
         canvas.drawColor(ResourcesCompatUtils.getColor(context,
                 R.color.mainColor))
 
-        val drawingAreaWidth = MetricsUtils.dpToPx(drawingBoundInDp.width())
-        val drawingAreaHeight = MetricsUtils.dpToPx(drawingBoundInDp.height())
+        val drawingAreaWidth = MetricsUtils.dpToPx(boundInDp.width())
+        val drawingAreaHeight = MetricsUtils.dpToPx(boundInDp.height())
         val drawingAreaX = 0
         val drawingAreaY = ((height - drawingAreaHeight) / 2.0f).roundToInt()
 
-        val gwInPx = MetricsUtils.dpToPx(gridWidthInDp)
-        val ghInPx = MetricsUtils.dpToPx(gridHeightInDp)
+        val gwInPx = MetricsUtils.dpToPx(widthInDp)
+        val ghInPx = MetricsUtils.dpToPx(heightInDp)
 
-        if (debugFrames) {
+        if (debugFrames && !empty) {
             val drawingAreaRect = Rect(drawingAreaX, drawingAreaY,
                     drawingAreaX + drawingAreaWidth, drawingAreaY + drawingAreaHeight)
 
@@ -101,18 +107,20 @@ class Screen: AbsSurfaceView {
                 drawingAreaX.toFloat() + drawingAreaWidth,
                 drawingAreaY + drawingAreaHeight / 2.0f, CENTRAL_LINE_PAINT)
 
-        val startGridCol = floor(drawingBoundInDp.left / gridWidthInDp.toFloat()).roundToInt()
-        val startGridRow = floor(drawingBoundInDp.top / gridHeightInDp.toFloat()).roundToInt()
-        val endGridCol = ceil(drawingBoundInDp.right / gridWidthInDp.toFloat()).roundToInt()
-        val endGridRow = ceil(drawingBoundInDp.bottom / gridHeightInDp.toFloat()).roundToInt()
+        Logger.debug("drawingBoundInDp = $boundInDp, widthInDp = $widthInDp, heightInDp = $heightInDp")
+
+        val startGridCol = floor(boundInDp.left / widthInDp.toFloat()).roundToInt()
+        val startGridRow = floor(boundInDp.top / heightInDp.toFloat()).roundToInt()
+        val endGridCol = ceil(boundInDp.right / widthInDp.toFloat()).roundToInt()
+        val endGridRow = ceil(boundInDp.bottom / heightInDp.toFloat()).roundToInt()
 //        Logger.debug("start grid: col = $startGridCol, row = $startGridRow")
 //        Logger.debug("end grid: col = $endGridCol, row = $endGridRow")
 
-        val canvasOffsetXInPx = MetricsUtils.dpToPx(drawingBoundInDp.left)
-        val canvasOffsetYInPx = MetricsUtils.dpToPx(drawingBoundInDp.top)
+        val canvasOffsetXInPx = MetricsUtils.dpToPx(boundInDp.left)
+        val canvasOffsetYInPx = MetricsUtils.dpToPx(boundInDp.top)
 //        Logger.debug("canvasOffsetXInPx = $canvasOffsetXInPx, canvasOffsetYInPx = $canvasOffsetYInPx")
 
-        if (debugFrames) {
+        if (debugFrames && !empty) {
             for (col in startGridCol..endGridCol) {
                 val lineX = col * gwInPx - canvasOffsetXInPx.toFloat()
 //                Logger.debug("lineX = $col * $gwInPx - ${canvasOffsetXInPx.toFloat()} = $lineX")
@@ -137,34 +145,27 @@ class Screen: AbsSurfaceView {
                     R.color.colorAccent)
         }
 
-//        for (grid in occupiedGrids) {
-        synchronized(drawnGrids) {
-            drawnGrids.forEach {
-                val point = dumpGrid(it)
+        grids.forEach {
+            val point = dumpGrid(it)
 
-                val lineX = point.x * gwInPx - canvasOffsetXInPx.toFloat()
-                val lineY = point.y * ghInPx - canvasOffsetYInPx.toFloat() + drawingAreaY
+            val lineX = point.x * gwInPx - canvasOffsetXInPx.toFloat()
+            val lineY = point.y * ghInPx - canvasOffsetYInPx.toFloat() + drawingAreaY
 
-                canvas.drawRect(lineX, lineY, lineX + gwInPx, lineY + ghInPx, paint)
-            }
+            canvas.drawRect(lineX, lineY, lineX + gwInPx, lineY + ghInPx, paint)
         }
+    }
+
+    fun clearDimension() {
+        updateDimension(0, 0, null)
     }
 
     fun updateDimension(gridWidthInDp: Int, gridHeightInDp: Int,
                         drawingBoundInDp: Rect?) {
-        this.gridWidthInDp = gridWidthInDp
-        this.gridHeightInDp = gridHeightInDp
-        this.drawingBoundInDp = drawingBoundInDp ?: Rect()
+        this.gridWidthInDp = synchronized(this.gridWidthInDp) { gridWidthInDp }
+        this.gridHeightInDp = synchronized(this.gridHeightInDp) { gridHeightInDp }
+        this.drawingBoundInDp = synchronized(this.drawingBoundInDp) { drawingBoundInDp ?: Rect() }
 
         invalidate()
-    }
-
-    fun updateGrids(grids: Array<Array<Int>>) {
-        occupiedGrids.clear()
-
-        for (point in grids) {
-            occupiedGrids.add("${point[0]}_${point[1]}")
-        }
     }
 
     fun dumpGrid(gridStr: String): Point {
@@ -191,6 +192,8 @@ class Screen: AbsSurfaceView {
         synchronized(drawnGrids) {
             drawnGrids.clear()
         }
+
+        clearDimension()
 
         invalidate()
     }

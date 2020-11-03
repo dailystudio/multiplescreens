@@ -14,6 +14,7 @@ import com.dailystudio.devbricksx.development.Logger
 import com.dailystudio.devbricksx.utils.ResourcesCompatUtils
 import com.dailystudio.multiplescreens.api.*
 import com.dailystudio.multiplescreens.fragment.AboutFragment
+import com.dailystudio.multiplescreens.fragment.MultipleScreensSettingsDialogFragment
 import com.dailystudio.multiplescreens.ui.Screen
 import com.dailystudio.multiplescreens.utils.MetricsUtils
 import com.google.android.material.button.MaterialButton
@@ -159,7 +160,9 @@ class MainActivity : AppCompatActivity() {
 
         settingsBtn = findViewById(R.id.btn_settings)
         settingsBtn?.setOnClickListener {
-            Logger.debug("clicked")
+            val fragment = MultipleScreensSettingsDialogFragment()
+
+            fragment.show(supportFragmentManager, "settings")
         }
     }
 
@@ -223,12 +226,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                is CmdGridsMap -> {
-                    lifecycleScope.launch(Dispatchers.Main) {
-                        updateGridsMap(command.map)
-                    }
-                }
-
                 is CmdDrawPoint -> {
                     lifecycleScope.launch(Dispatchers.Main) {
                         drawPoint(command.point)
@@ -277,12 +274,6 @@ class MainActivity : AppCompatActivity() {
         screen.updateDimension(
                 gridWidthInDp, gridHeightInDp,
                 drawingBoundInDp)
-    }
-
-    private fun updateGridsMap(map: Array<Array<Int>>) {
-        val screen: Screen = findViewById(R.id.grid_screen) ?: return
-
-        screen.updateGrids(map)
     }
 
     private fun drawPoint(point: Array<Int>) {
