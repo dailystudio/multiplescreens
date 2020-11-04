@@ -188,11 +188,14 @@ class Screen: AbsSurfaceView {
         invalidate()
     }
 
-    fun resetDrawing() {
+    fun clearGrids() {
         synchronized(drawnGrids) {
             drawnGrids.clear()
         }
+    }
 
+    fun resetDrawing() {
+        clearGrids()
         clearDimension()
 
         invalidate()

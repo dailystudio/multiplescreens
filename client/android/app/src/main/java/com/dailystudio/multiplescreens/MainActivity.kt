@@ -29,7 +29,6 @@ import kotlinx.coroutines.withContext
 import java.util.*
 import kotlin.math.roundToInt
 
-
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -57,6 +56,7 @@ class MainActivity : AppCompatActivity() {
     private val uuid: String = UUID.randomUUID().toString()
 
     private var isDrawing = false
+    private var isStopped = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -140,9 +140,13 @@ class MainActivity : AppCompatActivity() {
         startBtn = findViewById(R.id.btn_start)
         startBtn?.setOnClickListener {
             if (!isDrawing) {
-                startDrawing()
+                if (isStopped) {
+                    startDrawing()
+                } else {
+                    resumeDrawing()
+                }
             } else {
-                stopDrawing()
+                pauseDrawing()
             }
         }
 
@@ -231,6 +235,12 @@ class MainActivity : AppCompatActivity() {
                         drawPoint(command.point)
                     }
                 }
+
+                is CmdEndDrawing -> {
+                    lifecycleScope.launch(Dispatchers.Main) {
+                        stopDrawing(false)
+                    }
+                }
             }
         }
     }
@@ -249,15 +259,35 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startDrawing() {
-        wsServer?.startDrawing()
-        isDrawing = true
-        startBtn?.text = getString(R.string.label_stop)
-        startBtn?.icon = ResourcesCompatUtils.getDrawable(this,
-                R.drawable.ic_stop)
+        screen?.clearGrids()
+
+        resumeDrawing()
     }
 
-    private fun stopDrawing() {
-        wsServer?.stopDrawing()
+    private fun resumeDrawing() {
+        wsServer?.startDrawing()
+
+        isDrawing = true
+        startBtn?.text = getString(R.string.label_pause)
+        startBtn?.icon = ResourcesCompatUtils.getDrawable(this,
+                R.drawable.ic_pause)
+    }
+
+    private fun pauseDrawing() {
+        wsServer?.pauseDrawing()
+
+        isDrawing = false
+        startBtn?.text = getString(R.string.label_resume)
+        startBtn?.icon = ResourcesCompatUtils.getDrawable(this,
+                R.drawable.ic_play)
+    }
+
+
+
+    private fun stopDrawing(notifyServer: Boolean = true) {
+        if (notifyServer) {
+            wsServer?.stopDrawing()
+        }
 
         isDrawing = false
         startBtn?.text = getString(R.string.label_start)

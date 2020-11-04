@@ -99,6 +99,11 @@ class WSEndpoint(private val sid: String,
                             GSON.fromJson(text, CmdDrawPoint::class.java))
                     }
 
+                    CmdCode.END_DRAWING -> {
+                        listener?.onCommand(this@WSEndpoint,
+                            GSON.fromJson(text, CmdEndDrawing::class.java))
+                    }
+
                     else -> {
                         Logger.warn("unsupported cmd: $cmdObject")
                     }
@@ -120,6 +125,12 @@ class WSEndpoint(private val sid: String,
 
     fun startDrawing() {
         val cmd = CmdStartDrawing(uuid, sid);
+
+        wsSocket?.send(GSON.toJson(cmd))
+    }
+
+    fun pauseDrawing() {
+        val cmd = CmdPauseDrawing(uuid, sid);
 
         wsSocket?.send(GSON.toJson(cmd))
     }

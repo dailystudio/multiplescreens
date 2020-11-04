@@ -7,7 +7,9 @@ enum class CmdCode {
     UPDATE_SCREEN_INFO,
     SYNC_GRIDS_MAP,
     START_DRAWING,
+    PAUSE_DRAWING,
     STOP_DRAWING,
+    END_DRAWING,
     DRAW_POINT,
 }
 
@@ -38,6 +40,32 @@ class CmdStartDrawing(uuid: String,
 class CmdStopDrawing(uuid: String,
                       val sid: String
 ): Command(uuid, CmdCode.STOP_DRAWING) {
+
+    override fun toString(): String {
+        return buildString {
+            append(super.toString())
+            append(": sid = $sid")
+        }
+    }
+
+}
+
+class CmdEndDrawing(uuid: String,
+                    val sid: String
+): Command(uuid, CmdCode.END_DRAWING) {
+
+    override fun toString(): String {
+        return buildString {
+            append(super.toString())
+            append(": sid = $sid")
+        }
+    }
+
+}
+
+class CmdPauseDrawing(uuid: String,
+                      val sid: String
+): Command(uuid, CmdCode.PAUSE_DRAWING) {
 
     override fun toString(): String {
         return buildString {

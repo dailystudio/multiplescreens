@@ -6,6 +6,8 @@
 
     <string name="label_start">Start</string>
     <string name="label_stop">Stop</string>
+    <string name="label_pause">Pause</string>
+    <string name="label_resume">Resume</string>
     <string name="label_exit">Exit</string>
     <string name="label_share">Share</string>
     <string name="label_host">Host</string>
