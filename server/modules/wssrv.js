@@ -58,10 +58,18 @@ module.exports = function(app, httpsServer) {
                         break;
                     }
 
-                    case constants.CMD_CODE_STOP_DRAWING: {
+                    case constants.CMD_CODE_PAUSE_DRAWING: {
                         let sid = msgObj.sid;
 
                         pauseDrawing(sid);
+
+                        break;
+                    }
+
+                    case constants.CMD_CODE_STOP_DRAWING: {
+                        let sid = msgObj.sid;
+
+                        stopDrawing(sid);
 
                         break;
                     }
@@ -99,7 +107,7 @@ function updateScreenInfo(ws) {
 
     data.cmdCode = constants.CMD_CODE_UPDATE_SCREEN_INFO;
     logger.info(`update screen info: ${JSON.stringify(data)}`);
-    ws.send(JSON.stringify(data));
+    sendDataSafely(ws, data);
 }
 
 function syncGrisMap(ws) {
@@ -110,7 +118,7 @@ function syncGrisMap(ws) {
     };
 
     logger.info(`grids map info: ${JSON.stringify(data)}`);
-    ws.send(JSON.stringify(data));
+    sendDataSafely(ws, data);
 }
 
 function startDrawing(sid) {
@@ -160,7 +168,27 @@ function stopDrawing(sid) {
     logger.debug(`stop drawing: sid = ${sid}`);
 
     pauseDrawing(sid);
+    broadcastEnding(sid);
+
     sessions.delete(sid);
+}
+
+function broadcastEnding(sid) {
+    logger.debug(`[${sid}] ending`)
+    let clients = wsmgr.list(sid);
+
+    for (let c of clients) {
+        let ws = wsmgr.getWs(c.uuid);
+
+        let data = {
+            cmdCode: constants.CMD_CODE_END_DRAWING,
+            sid: sid,
+            uuid: ws.uuid,
+        };
+
+        logger.info(`endding: ${JSON.stringify(data)}`);
+        sendDataSafely(ws, data);
+    }
 }
 
 function broadcastDrawing(sid, point) {
@@ -178,7 +206,7 @@ function broadcastDrawing(sid, point) {
         };
 
         logger.info(`drawing point: ${JSON.stringify(data)}`);
-        ws.send(JSON.stringify(data));
+        sendDataSafely(ws, data);
     }
 }
 
@@ -222,5 +250,13 @@ function splitCanvas(sid) {
 
             canvasOffsetXInDp += c.widthInDp;
         }
+    }
+}
+
+function sendDataSafely(ws, data) {
+    try {
+        ws.send(JSON.stringify(data));
+    } catch (e) {
+        logger.error(`send data failed: ${e}`)
     }
 }
