@@ -15,7 +15,7 @@ import com.dailystudio.devbricksx.utils.ResourcesCompatUtils
 import com.dailystudio.multiplescreens.api.*
 import com.dailystudio.multiplescreens.fragment.AboutFragment
 import com.dailystudio.multiplescreens.fragment.MultipleScreensSettingsDialogFragment
-import com.dailystudio.multiplescreens.ui.Screen
+import com.dailystudio.multiplescreens.ui.*
 import com.dailystudio.multiplescreens.utils.MetricsUtils
 import com.google.android.material.button.MaterialButton
 import com.google.zxing.BarcodeFormat
@@ -55,8 +55,7 @@ class MainActivity : AppCompatActivity() {
     private val mySessionId = "ms-${(1..1000).shuffled().first()}"
     private val uuid: String = UUID.randomUUID().toString()
 
-    private var isDrawing = false
-    private var isStopped = false
+    private var drawState = DrawState.Exit
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,13 +112,7 @@ class MainActivity : AppCompatActivity() {
 
         hostBtn = findViewById(R.id.btn_host)
         hostBtn?.setOnClickListener {
-            connect(mySessionId)
-            screen?.resetDrawing()
-
-            groupStart?.visibility = View.GONE
-            groupPlay?.visibility = View.VISIBLE
-            startBtn?.isEnabled = true
-            shareBtn?.isEnabled = true
+            handleDrawAction(DrawConnectAction(mySessionId))
         }
 
         joinBtn = findViewById(R.id.btn_join)
@@ -129,24 +122,20 @@ class MainActivity : AppCompatActivity() {
 
         exitBtn = findViewById(R.id.btn_exit)
         exitBtn?.setOnClickListener {
-            stopDrawing()
-            disconnect()
-            screen?.resetDrawing()
-
-            groupStart?.visibility = View.VISIBLE
-            groupPlay?.visibility = View.GONE
+            handleDrawAction(DrawExitAction())
         }
 
         startBtn = findViewById(R.id.btn_start)
         startBtn?.setOnClickListener {
-            if (!isDrawing) {
-                if (isStopped) {
-                    startDrawing()
-                } else {
-                    resumeDrawing()
+            when (drawState) {
+                DrawState.Connect, DrawState.Stop -> {
+                    handleDrawAction(DrawStartAction())
                 }
-            } else {
-                pauseDrawing()
+                DrawState.Pause -> handleDrawAction(DrawResumeAction())
+                DrawState.Start, DrawState.Resume -> handleDrawAction(DrawPauseAction())
+                else -> {
+                    Logger.warn("invalid state $drawState")
+                }
             }
         }
 
@@ -177,6 +166,47 @@ class MainActivity : AppCompatActivity() {
         disconnect()
     }
 
+    private fun handleDrawAction(drawAction: DrawAction) {
+        Logger.debug("handle action = [$drawAction], state: [$drawState] -> [${drawAction.state}]")
+        when(drawAction.state) {
+            DrawState.Connect -> {
+                if (drawAction is DrawConnectAction) {
+                    val sid = drawAction.sid
+                    connect(sid)
+                    screen?.resetDrawing()
+
+                    groupStart?.visibility = View.GONE
+                    groupPlay?.visibility = View.VISIBLE
+                    startBtn?.isEnabled = (sid === mySessionId)
+                    shareBtn?.isEnabled = (sid === mySessionId)
+                }
+            }
+
+            DrawState.Start -> startDrawing()
+            DrawState.Resume -> resumeDrawing()
+            DrawState.Pause -> pauseDrawing()
+
+            DrawState.Stop -> {
+                stopDrawing(false)
+            }
+
+            DrawState.Exit -> {
+                stopDrawing()
+                disconnect()
+                screen?.resetDrawing()
+
+                groupStart?.visibility = View.VISIBLE
+                groupPlay?.visibility = View.GONE
+            }
+
+            else -> {
+                Logger.warn("unsupported draw action: $drawAction")
+            }
+        }
+
+        drawState = drawAction.state
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         val scanResult =
                 IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
@@ -184,13 +214,7 @@ class MainActivity : AppCompatActivity() {
             val urlFromQRCode: String? = scanResult.contents
             Logger.debug("session id from QR code: $urlFromQRCode")
             urlFromQRCode?.let {
-                connect(urlFromQRCode)
-                screen?.resetDrawing()
-
-                groupStart?.visibility = View.GONE
-                groupPlay?.visibility = View.VISIBLE
-                startBtn?.isEnabled = false
-                shareBtn?.isEnabled = false
+                handleDrawAction(DrawConnectAction(urlFromQRCode))
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)
@@ -238,7 +262,7 @@ class MainActivity : AppCompatActivity() {
 
                 is CmdEndDrawing -> {
                     lifecycleScope.launch(Dispatchers.Main) {
-                        stopDrawing(false)
+                        handleDrawAction(DrawStopAction())
                     }
                 }
             }
@@ -267,7 +291,6 @@ class MainActivity : AppCompatActivity() {
     private fun resumeDrawing() {
         wsServer?.startDrawing()
 
-        isDrawing = true
         startBtn?.text = getString(R.string.label_pause)
         startBtn?.icon = ResourcesCompatUtils.getDrawable(this,
                 R.drawable.ic_pause)
@@ -276,20 +299,16 @@ class MainActivity : AppCompatActivity() {
     private fun pauseDrawing() {
         wsServer?.pauseDrawing()
 
-        isDrawing = false
         startBtn?.text = getString(R.string.label_resume)
         startBtn?.icon = ResourcesCompatUtils.getDrawable(this,
                 R.drawable.ic_play)
     }
-
-
 
     private fun stopDrawing(notifyServer: Boolean = true) {
         if (notifyServer) {
             wsServer?.stopDrawing()
         }
 
-        isDrawing = false
         startBtn?.text = getString(R.string.label_start)
         startBtn?.icon = ResourcesCompatUtils.getDrawable(this,
                 R.drawable.ic_play)
