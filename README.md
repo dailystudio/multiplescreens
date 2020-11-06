@@ -107,26 +107,42 @@ Here is the matrix of characters **1024**:
 
 ```javascript
 [
-    // "1"
+    // Character "1"
     [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9],
 
-    // "0"
+    // Character "0"
     [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7], [4, 8], [4, 9], 
     [5, 1], [6, 1], [7, 1], [8, 1],
     [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 7], [8, 8], [8, 9],
     [5, 9], [6, 9], [7, 9],
 
-    // "2"
+    // Character "2"
     [11, 1], [12, 1], [13, 1], [14, 1], [15, 1],
     [15, 2], [15, 3], [15, 4], [15, 5],
     [14, 5], [13, 5], [12, 5], [11, 5],
     [11, 6], [11, 7], [11, 8], [11, 9],
     [12, 9], [13, 9], [14, 9], [15, 9],
 
-    // "4"
+    // Character "4"
     [18, 1], [18, 2], [18, 3], [18, 4], [18, 5],
     [19, 5], [20, 5], [21, 5], [22, 5],
-    [22, 1], [22, 2], [22, 3], [22, 4], [22, 6], [22, 7], [22, 8], [22, 9],
+    [22, 1], [22, 2], [22, 3], [22, 4], [22, 6], [22, 7], [22, 8], [22, 9]
 ]
 ```
 The position of the point in this array reflects its drawing order in sessions. If you change positions of points, the character might be displayed in a slightly stranger way than you write it naturally.
+
+
+## License
+    Copyright 2020 Daily Studio.
+
+    Licensed under the GNU General Public License , Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+       http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
