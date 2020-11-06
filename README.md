@@ -21,7 +21,7 @@ The diagram above illustrates essential communication between the backend and de
 ## Communication 
 The backend and devices use WebSockets to communicate with each other. Communication includes different types of commands. All the devices send commands to the backend and backend responses for dispatching commands to devices. There is no direct interaction among devices.
 
-###1. Report screen information
+### 1. Report screen information
 
 - **Example**
 
@@ -38,7 +38,7 @@ The backend and devices use WebSockets to communicate with each other. Communica
 	
 	As soon as the device connects to the backend, it sends this command to the backend to report its display dimension. The **width** and **height** should be in **DP** format as the backend tries to make sure that the content on the different screens should be kept in the same physical size.
 
-###2. Update screen information
+### 2. Update screen information
 
 - **Example**
 
@@ -63,7 +63,7 @@ The backend and devices use WebSockets to communicate with each other. Communica
 	
 	When a device joins the session, the backend will calculate the virtual canvas size and resend this command to each device in the session. **seq** indicates the position of the device in the virtual canvas, while **drawingBoundInDp** specifies the area that this device should be responsible for. **gridWidthInDp** and **gridHeightInDp** defines the dimension of each grid in **DP** format.
 
-###3. Control session (Start / Pause / Stop)
+### 3. Control session (Start / Pause / Stop)
 
 - **Example**
 
@@ -80,7 +80,7 @@ The backend and devices use WebSockets to communicate with each other. Communica
 	The host device can send session controlling commands to the backend. **cmdCode** includes **START_DRAWING**, **PAUSE_DRAWING** and **STOP_DRAWING**. The difference between **PAUSE_DRAWING** and **STOP_DRAWING** is that session progress can't be recovered after receiving **STOP_DRAWING** command.
 	
 
-###4. Drawing
+### 4. Drawing
 
 - **Example**
 
@@ -135,7 +135,7 @@ The position of the point in this array reflects its drawing order in sessions. 
 ## License
     Copyright 2020 Daily Studio.
 
-    Licensed under the GNU General Public License , Version 2.0 (the "License");
+    Licensed under the GNU General Public License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
     
