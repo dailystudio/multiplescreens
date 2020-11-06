@@ -44,7 +44,7 @@ The backend and devices use WebSockets to communicate with each other. Communica
 
 ```json
 {
-	"cmdCode": "UPDATE_SCREEN_INFO"
+	"cmdCode": "UPDATE_SCREEN_INFO",
 	"sid": "ms-426",
 	"uuid": "1e062fbf-281a-4172-bb5a-d9a2ac168d82",
 	"seq": 1,
