@@ -6,6 +6,7 @@
     android:background="@color/mainColor"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:keepScreenOn="true"
     tools:context="com.dailystudio.multiplescreens.MainActivity">
 
     <RelativeLayout

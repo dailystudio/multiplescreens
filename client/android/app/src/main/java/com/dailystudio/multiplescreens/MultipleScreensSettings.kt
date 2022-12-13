@@ -1,12 +1,13 @@
 package com.dailystudio.multiplescreens
 
-import com.dailystudio.devbricksx.annotations.PreferenceValue
-import com.dailystudio.devbricksx.annotations.SharedPreference
+import com.dailystudio.devbricksx.annotations.data.BooleanField
+import com.dailystudio.devbricksx.annotations.data.DataStoreCompanion
+import com.dailystudio.devbricksx.annotations.data.StringField
 
-@SharedPreference
-class MultipleScreensSettings(@PreferenceValue(defaultValueStr = "false")
+@DataStoreCompanion
+class MultipleScreensSettings(@BooleanField(false)
                               val debugFrames: Boolean = false,
-                              @PreferenceValue(defaultValueStr = DEFAULT_WS_URL)
+                              @StringField(DEFAULT_WS_URL)
                               val wsUrl: String = DEFAULT_WS_URL) {
 
     companion object {
